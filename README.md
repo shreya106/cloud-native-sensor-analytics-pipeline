@@ -2,64 +2,55 @@
 
 FastAPI • Kubernetes • Docker • PostgreSQL • Grafana • GCP
 
-A production-grade cloud-native IoT pipeline that streams real-time temperature & humidity data, stores it reliably, and visualizes it using Grafana — all deployed on a multi-node Kubernetes cluster on Google Cloud Platform (GCP).
+A production-grade cloud-native IoT pipeline that streams real-time temperature & humidity data, stores it reliably, and visualizes it using Grafana — deployed on a multi-node Kubernetes cluster on Google Cloud Platform (GCP).
 
 🚀 Overview
 
-This project demonstrates a complete cloud-native microservices architecture:
+This project implements an end-to-end cloud-native architecture using:
 
-Producer microservice simulates live sensor readings every 5 seconds
+Microservices (Producer + Collector)
 
-Collector microservice validates & stores data into PostgreSQL
+Docker containers
 
-PostgreSQL persists data using a Kubernetes PVC
+Kubernetes orchestration
 
-Grafana visualizes real-time trends
+PVC-backed PostgreSQL storage
 
-Kubernetes manages deployments, networking, auto-healing, and scaling
+Grafana-based real-time dashboards
 
-🧩 Architecture
- ┌────────────┐     JSON      ┌─────────────┐     SQL Inserts     ┌─────────────┐      SQL Queries      ┌─────────────┐
- │ PRODUCER   │ ────────────► │ COLLECTOR   │ ───────────────────► │ POSTGRESQL  │ ─────────────────────► │  GRAFANA    │
- │ (FastAPI)  │               │ (FastAPI)   │                      │ (PVC-backed)│                        │ Dashboard UI│
- └────────────┘               └─────────────┘                      └─────────────┘                        └─────────────┘
-
-
-✔ Real-time → ingestion → database → live dashboard
-✔ Stateless microservices + persistent storage
-✔ Kubernetes handles pod scheduling, service discovery & recovery
+The goal is to build a scalable, fault-tolerant sensor analytics system.
 
 ✨ Features
 🔹 Real-Time Sensor Data
 
-Producer generates temperature + humidity readings every 5 seconds
+Producer generates live temperature & humidity data every 5 seconds
 
-Collector API stores readings in PostgreSQL
+Collector API validates and stores readings in PostgreSQL
 
 🔹 Containerized Microservices
 
-Dockerized Producer + Collector
+Independent Producer and Collector microservices
 
-Images pushed to DockerHub
+Dockerized and pushed to DockerHub
 
 🔹 Kubernetes Orchestration
 
-Deployments for Producer, Collector, PostgreSQL
+Deployments manage rolling updates & scaling
 
-Services (ClusterIP + NodePort) ensure stable networking
+Services (ClusterIP + NodePort) provide stable networking
 
-PVC prevents data loss even if pods restart
+PVC ensures no data loss
 
-Auto-healing + multi-node scheduling on GCP
+Automatic restart & pod recovery
 
 🔹 Live Visualization
 
-Grafana dashboards with auto-refresh
+Grafana dashboard auto-refreshes
 
-SQL queries visualize database values in real time
+SQL-based visualizations in real time
 
 📁 Project Structure
-cloud_project/
+cloud-native-sensor-analytics-pipeline/
 ├── producer/
 │   ├── app.py
 │   ├── Dockerfile
@@ -70,8 +61,8 @@ cloud_project/
 │   └── requirements.txt
 ├── k8s/
 │   ├── postgres.yaml
-│   ├── producer.yaml
-│   └── collector.yaml
+│   ├── collector.yaml
+│   └── producer.yaml
 └── README.md
 
 ⚙️ How to Run
@@ -82,7 +73,7 @@ docker push <user>/producer
 docker build -t <user>/collector ./collector
 docker push <user>/collector
 
-2️⃣ Apply Kubernetes Manifests
+2️⃣ Deploy Kubernetes Resources
 kubectl apply -f k8s/postgres.yaml
 kubectl apply -f k8s/collector.yaml
 kubectl apply -f k8s/producer.yaml
@@ -91,13 +82,14 @@ kubectl apply -f k8s/producer.yaml
 kubectl get pods -o wide
 kubectl get svc
 kubectl logs -l app=producer -f
-kubectl logs -l app=collector -f
+kubectl logs -l app=collector -
 
 4️⃣ Access Services
-Service	URL
-Collector API (latest)	http://<NODE_IP>:31111/latest
+Service	Endpoint
+Collector Latest Data	http://<NODE_IP>:31111/latest
 Grafana Dashboard	http://<MASTER_IP>:3000
-📊 Sample Output (Producer → Collector → PostgreSQL)
+
+📊 Sample JSON Output
 {
   "device_id": "sensor-01",
   "temperature": 28.66,
@@ -106,14 +98,10 @@ Grafana Dashboard	http://<MASTER_IP>:3000
 }
 
 🌱 Future Enhancements
-
-Add Kafka for high-throughput streaming
-
-Add Prometheus + Grafana Alerts
-
+Integrate Kafka for high-throughput ingestion
+Add Prometheus monitoring + Grafana alert rules
 Deploy Grafana inside Kubernetes
-
-Scale replicas based on load
+Autoscale using HPA (Horizontal Pod Autoscaler)
 
 🧑‍💻 Authors
 
