@@ -2,31 +2,43 @@
 
 FastAPI • Kubernetes • Docker • PostgreSQL • Grafana • GCP
 
-A real-time cloud-native IoT data pipeline designed to ingest, store, and visualize sensor readings using Kubernetes microservices, persistent storage, and Grafana dashboards.
-Built on a multi-node Kubernetes cluster running on Google Cloud Platform (GCP).
+A production-grade cloud-native IoT pipeline that streams real-time temperature & humidity data, stores it reliably, and visualizes it using Grafana — all deployed on a multi-node Kubernetes cluster on Google Cloud Platform (GCP).
 
-🚀 Project Architecture
- ┌────────────┐     JSON      ┌───────────────┐     SQL       ┌──────────────┐     Visuals     ┌────────────┐
- │  PRODUCER   │ ───────────▶ │   COLLECTOR    │ ───────────▶ │  POSTGRESQL   │ ─────────────▶ │   GRAFANA   │
- │  (FastAPI)  │              │   (FastAPI)    │              │  (PVC-backed) │                │  Dashboard  │
- └────────────┘               └───────────────┘              └──────────────┘                └────────────┘
+🚀 Overview
+
+This project demonstrates a complete cloud-native microservices architecture:
+
+Producer microservice simulates live sensor readings every 5 seconds
+
+Collector microservice validates & stores data into PostgreSQL
+
+PostgreSQL persists data using a Kubernetes PVC
+
+Grafana visualizes real-time trends
+
+Kubernetes manages deployments, networking, auto-healing, and scaling
+
+🧩 Architecture
+ ┌────────────┐     JSON      ┌─────────────┐     SQL Inserts     ┌─────────────┐      SQL Queries      ┌─────────────┐
+ │ PRODUCER   │ ────────────► │ COLLECTOR   │ ───────────────────► │ POSTGRESQL  │ ─────────────────────► │  GRAFANA    │
+ │ (FastAPI)  │               │ (FastAPI)   │                      │ (PVC-backed)│                        │ Dashboard UI│
+ └────────────┘               └─────────────┘                      └─────────────┘                        └─────────────┘
 
 
-✔ Producer sends live temperature & humidity
-✔ Collector validates + stores into PostgreSQL
-✔ Grafana visualizes via live auto-refresh charts
-✔ Kubernetes manages deployments, scaling, storage & recovery
+✔ Real-time → ingestion → database → live dashboard
+✔ Stateless microservices + persistent storage
+✔ Kubernetes handles pod scheduling, service discovery & recovery
 
-🧩 Features
+✨ Features
 🔹 Real-Time Sensor Data
 
-Producer microservice generates temperature & humidity data every 5 seconds
+Producer generates temperature + humidity readings every 5 seconds
 
-Automatic REST-based data ingestion
+Collector API stores readings in PostgreSQL
 
 🔹 Containerized Microservices
 
-Dockerized Producer & Collector
+Dockerized Producer + Collector
 
 Images pushed to DockerHub
 
@@ -34,89 +46,75 @@ Images pushed to DockerHub
 
 Deployments for Producer, Collector, PostgreSQL
 
-Services (ClusterIP + NodePort) for stable networking
+Services (ClusterIP + NodePort) ensure stable networking
 
-PVC-backed PostgreSQL ensures no data loss
+PVC prevents data loss even if pods restart
 
-Auto-healing pods & multi-node scheduling on GCP
+Auto-healing + multi-node scheduling on GCP
 
 🔹 Live Visualization
 
 Grafana dashboards with auto-refresh
 
-SQL queries visualize database values in real-time
+SQL queries visualize database values in real time
 
-📦 Tech Stack
-Layer	Technology
-Backend	FastAPI, Python
-Database	PostgreSQL + PersistentVolumeClaim
-Visualization	Grafana
-Containerization	Docker, DockerHub
-Orchestration	Kubernetes (Deployments, Services, PVC, PV)
-Networking	Flannel CNI
-Cloud Hosting	Google Cloud Platform (GCP VMs)
 📁 Project Structure
 cloud_project/
-│
 ├── producer/
 │   ├── app.py
 │   ├── Dockerfile
 │   └── requirements.txt
-│
 ├── collector/
 │   ├── app.py
 │   ├── Dockerfile
 │   └── requirements.txt
-│
 ├── k8s/
 │   ├── postgres.yaml
 │   ├── producer.yaml
 │   └── collector.yaml
-│
 └── README.md
 
 ⚙️ How to Run
 1️⃣ Build & Push Docker Images
-docker build -t <dockerhub>/producer ./producer
-docker push <dockerhub>/producer
+docker build -t <user>/producer ./producer
+docker push <user>/producer
 
-docker build -t <dockerhub>/collector ./collector
-docker push <dockerhub>/collector
+docker build -t <user>/collector ./collector
+docker push <user>/collector
 
 2️⃣ Apply Kubernetes Manifests
 kubectl apply -f k8s/postgres.yaml
 kubectl apply -f k8s/collector.yaml
 kubectl apply -f k8s/producer.yaml
 
-3️⃣ Verify
+3️⃣ Verify Deployment
 kubectl get pods -o wide
 kubectl get svc
 kubectl logs -l app=producer -f
 kubectl logs -l app=collector -f
 
 4️⃣ Access Services
-Component	URL
-Collector /latest	http://<NODE-IP>:31111/latest
-Grafana Dashboard	http://<MASTER-IP>:3000
+Service	URL
+Collector API (latest)	http://<NODE_IP>:31111/latest
+Grafana Dashboard	http://<MASTER_IP>:3000
 📊 Sample Output (Producer → Collector → PostgreSQL)
 {
   "device_id": "sensor-01",
   "temperature": 28.66,
   "humidity": 38.86,
-  "timestamp": "2025-11-29T00:19:33Z"
+  "timestamp": "2025-11-29T00:19:30Z"
 }
 
-🏗️ Future Enhancements
+🌱 Future Enhancements
 
-Add Kafka for high-throughput event streaming
+Add Kafka for high-throughput streaming
 
-Add Prometheus for system metrics
+Add Prometheus + Grafana Alerts
 
-Add Horizontal Pod Autoscaler (HPA)
+Deploy Grafana inside Kubernetes
 
-Add support for multiple sensor types
+Scale replicas based on load
 
-Deploy Grafana inside Kubernetes instead of VM
+🧑‍💻 Authors
 
-👩‍💻 author
-Name: Shreya Galurgi
+Shreya Galurgi
